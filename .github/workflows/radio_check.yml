@@ -1,0 +1,34 @@
+name: Webradio Monitor
+
+on:
+  schedule:
+    - cron: '0 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install deps
+        run: pip install requests
+
+      - name: Run check
+        run: python radio_check.py
+
+      - name: Commit results
+        run: |
+          git config user.name "radio-bot"
+          git config user.email "radio@bot"
+          git add data/history.json
+          git commit -m "radio check $(date -u)" || exit 0
+          git push
